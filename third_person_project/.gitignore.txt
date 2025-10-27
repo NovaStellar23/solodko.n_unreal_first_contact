@@ -1,0 +1,32 @@
+# Unreal Engine ignore rules,
+# Build and cache folders,
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Project-specific cache (if inside subfolder)
+third_person_project/Binaries/
+third_person_project/DerivedDataCache/
+third_person_project/Intermediate/
+third_person_project/Saved/
+
+# User-specific files
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+
+# Build config and IDE cache
+.vscode/
+.idea/
+*.VC.db
+*.VC.opendb
+
+# Backup and autosave
+*_Backup/
+*_Autosaves/
+
+# System files
+.DS_Store
+Thumbs.db
