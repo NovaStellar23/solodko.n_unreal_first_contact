@@ -31,8 +31,8 @@ int main()
         else if (cmd == "right") {
             x++;
         }
+    }
         cout << x << " " << y << endl;
 
         return 0;
-    }
-}
+    
