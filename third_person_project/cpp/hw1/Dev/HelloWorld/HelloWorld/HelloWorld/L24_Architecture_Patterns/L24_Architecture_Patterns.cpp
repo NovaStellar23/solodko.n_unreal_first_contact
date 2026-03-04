@@ -15,25 +15,32 @@ class Observer {
 class Subject {
     vector<Observer*> observers;
     int state = 0;
+
     public:
     void add(Observer* observer) {
         observers.push_back(observer);
     }
     void set(int x) {
         state = x;
+
         for (auto observer : observers) {
             observer->update(state);
+    }
     }
 
 };
 
 class ConcreteObserver : public Observer {
     string name;
+
     public:
         ConcreteObserver(string n) : name(n) {}
+
     void update(int x) override {
-        cout << "Observer "  << name
-            << " updated with state " << x << endl;
+        cout << "Observer " 
+            << name
+            << " updated with state " 
+            << x << endl;
     }
 };
 
@@ -48,7 +55,9 @@ int main()
     subject.add(&observer2);
 
     subject.set(10);
+
+    return 0;
 }
 
-};
+
 
