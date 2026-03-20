@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ProjectTestCharacter.h"
 #include "Engine/LocalPlayer.h"
@@ -65,9 +65,36 @@ void AProjectTestCharacter::BeginPlay()
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-		UE_LOG(LogTemp, Warning, TEXT("GAS INITIALIZED"));
-	}
-}
+		UE_LOG(LogTemp, Warning, TEXT("GAS initialized"));
+
+		//  TEST DAMAGE
+		FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
+
+		TSubclassOf<UGameplayEffect> DamageEffect = LoadClass<UGameplayEffect>(
+			nullptr, TEXT("/Game/ThirdPerson/Blueprints/GE_Damage.GE_Damage_C"));
+
+		if (!DamageEffect)
+		{
+			UE_LOG(LogTemp, Error, TEXT("DamageEffect NOT FOUND"));
+			return;
+		}
+
+		FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(
+			DamageEffect, 1.f, Context);
+
+		if (Spec.IsValid())
+		{
+			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+
+			UE_LOG(LogTemp, Warning, TEXT("Damage Applied"));
+
+			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Health AFTER: %f"),
+						AttributeSet->Health.GetCurrentValue());
+				});
+		}
+		}
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
