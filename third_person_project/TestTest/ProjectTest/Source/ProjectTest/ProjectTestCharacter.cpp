@@ -91,8 +91,43 @@ void AProjectTestCharacter::BeginPlay()
 			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Health AFTER: %f"),
-						AttributeSet->Health.GetCurrentValue());
+						AttributeSet->GetHealth());
 				});
+
+				}
+		
+			TSubclassOf<UGameplayEffect> HealEffect = LoadClass<UGameplayEffect>(
+				nullptr, TEXT("/Game/ThirdPerson/Blueprints/GE_Heal.GE_Heal_C"));
+
+			UE_LOG(LogTemp, Warning, TEXT("Reached Heal Block"));
+
+		if (!HealEffect)
+		{
+			UE_LOG(LogTemp, Error, TEXT("HealEffect NOT FOUND"));
+		}
+		else
+		{
+			FGameplayEffectSpecHandle HealSpec =
+				AbilitySystemComponent->MakeOutgoingSpec(HealEffect, 1.f, Context);
+
+			if (HealSpec.IsValid())
+			{
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*HealSpec.Data.Get());
+
+				UE_LOG(LogTemp, Warning, TEXT("Heal Applied"));
+
+				GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Health AFTER HEAL: %f"),
+							AttributeSet->GetHealth());
+					});
+			}
+		}
+		
+
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			PC->SetViewTarget(this);
 		}
 		}
 	// Add Input Mapping Context

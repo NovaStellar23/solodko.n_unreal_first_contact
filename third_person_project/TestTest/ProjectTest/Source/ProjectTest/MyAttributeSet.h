@@ -24,6 +24,7 @@ public:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
     FGameplayAttributeData Health;
-    ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health)
+    ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health);
         virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+    
 };
