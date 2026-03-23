@@ -61,6 +61,8 @@ void AProjectTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UE_LOG(LogTemp, Warning, TEXT("BEGIN PLAY START"));
+
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
@@ -88,6 +90,8 @@ void AProjectTestCharacter::BeginPlay()
 
 			UE_LOG(LogTemp, Warning, TEXT("Damage Applied"));
 
+			UE_LOG(LogTemp, Warning, TEXT("BEGIN PLAY START"));
+
 			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Health AFTER: %f"),
@@ -95,18 +99,22 @@ void AProjectTestCharacter::BeginPlay()
 				});
 
 				}
-		
+		UE_LOG(LogTemp, Warning, TEXT("BEFORE HEAL"));
+
 			TSubclassOf<UGameplayEffect> HealEffect = LoadClass<UGameplayEffect>(
 				nullptr, TEXT("/Game/ThirdPerson/Blueprints/GE_Heal.GE_Heal_C"));
 
 			UE_LOG(LogTemp, Warning, TEXT("Reached Heal Block"));
 
 		if (!HealEffect)
+			
 		{
 			UE_LOG(LogTemp, Error, TEXT("HealEffect NOT FOUND"));
 		}
 		else
 		{
+			UE_LOG(LogTemp, Warning, TEXT("INSIDE HEAL BLOCK"));
+
 			FGameplayEffectSpecHandle HealSpec =
 				AbilitySystemComponent->MakeOutgoingSpec(HealEffect, 1.f, Context);
 
