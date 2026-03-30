@@ -124,11 +124,13 @@ void AProjectTestCharacter::BeginPlay()
 
 				UE_LOG(LogTemp, Warning, TEXT("Heal Applied"));
 
-				GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+				FTimerHandle TimerHandle;
+
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Health AFTER HEAL: %f"),
 							AttributeSet->GetHealth());
-					});
+					}, 2.0f, false);
 			}
 		}
 		
