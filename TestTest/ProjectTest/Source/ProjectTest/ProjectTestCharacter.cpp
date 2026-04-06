@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "DrawDebugHelpers.h" 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -18,6 +19,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AProjectTestCharacter::AProjectTestCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AttributeSet = CreateDefaultSubobject<UMyAttributeSet>("AttributeSet");
 
@@ -63,83 +65,15 @@ void AProjectTestCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("BEGIN PLAY START"));
 
-	if (AbilitySystemComponent)
+	if (AbilitySystemComponent && AttributeSet)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 
-		UE_LOG(LogTemp, Warning, TEXT("GAS initialized"));
-
-		//  TEST DAMAGE
-		FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
-
-		TSubclassOf<UGameplayEffect> DamageEffect = LoadClass<UGameplayEffect>(
-			nullptr, TEXT("/Game/ThirdPerson/Blueprints/GE_Damage.GE_Damage_C"));
-
-		if (!DamageEffect)
-		{
-			UE_LOG(LogTemp, Error, TEXT("DamageEffect NOT FOUND"));
-			return;
-		}
-
-		FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(
-			DamageEffect, 1.f, Context);
-
-		if (Spec.IsValid())
-		{
-			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-
-			UE_LOG(LogTemp, Warning, TEXT("Damage Applied"));
-
-			UE_LOG(LogTemp, Warning, TEXT("BEGIN PLAY START"));
-
-			GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Health AFTER: %f"),
-						AttributeSet->GetHealth());
-				});
-
-				}
-		UE_LOG(LogTemp, Warning, TEXT("BEFORE HEAL"));
-
-			TSubclassOf<UGameplayEffect> HealEffect = LoadClass<UGameplayEffect>(
-				nullptr, TEXT("/Game/ThirdPerson/Blueprints/GE_Heal.GE_Heal_C"));
-
-			UE_LOG(LogTemp, Warning, TEXT("Reached Heal Block"));
-
-		if (!HealEffect)
-			
-		{
-			UE_LOG(LogTemp, Error, TEXT("HealEffect NOT FOUND"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("INSIDE HEAL BLOCK"));
-
-			FGameplayEffectSpecHandle HealSpec =
-				AbilitySystemComponent->MakeOutgoingSpec(HealEffect, 1.f, Context);
-
-			if (HealSpec.IsValid())
-			{
-				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*HealSpec.Data.Get());
-
-				UE_LOG(LogTemp, Warning, TEXT("Heal Applied"));
-
-				FTimerHandle TimerHandle;
-
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Health AFTER HEAL: %f"),
-							AttributeSet->GetHealth());
-					}, 2.0f, false);
-			}
-		}
-		
-
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			PC->SetViewTarget(this);
-		}
-		}
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->SetViewTarget(this);
+	}
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -151,6 +85,49 @@ void AProjectTestCharacter::BeginPlay()
 }
 
 //////////////////////////////////////////////////////////////////////////
+void AProjectTestCharacter::AnalyzeTarget(
+	AActor* Target,
+	FVector& OutDirection,
+	float& OutAngle,
+	bool& bIsRightSide)
+{
+	if (!Target) return;
+
+	FVector Direction = (Target->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+	OutDirection = Direction;
+
+	FVector Forward = GetActorForwardVector();
+
+	float Dot = FVector::DotProduct(Forward, Direction);
+	Dot = FMath::Clamp(Dot, -1.0f, 1.0f);
+
+	OutAngle = FMath::RadiansToDegrees(FMath::Acos(Dot));
+
+	FVector Cross = FVector::CrossProduct(Forward, Direction);
+	bIsRightSide = Cross.Z > 0;
+}
+void AProjectTestCharacter::DrawDebugStuff(FVector Direction, float Angle, bool bIsRight)
+{
+	FVector Start = GetActorLocation();
+	FVector End = Start + Direction * 300.0f;
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 0.0f, 0, 2.0f);
+
+	FVector ForwardEnd = Start + GetActorForwardVector() * 300.0f;
+	DrawDebugLine(GetWorld(), Start, ForwardEnd, FColor::Blue, false, 0.0f, 0, 2.0f);
+
+	FString Side = bIsRight ? TEXT("RIGHT") : TEXT("LEFT");
+
+	FString Text = FString::Printf(TEXT("Angle: %.2f | %s"), Angle, *Side);
+
+	DrawDebugString(GetWorld(), Start + FVector(0, 0, 100), Text, nullptr, FColor::White, 0.0f, true);
+}
+void AProjectTestCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateDebugAngleLine();
+}
 // Input
 
 void AProjectTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -173,7 +150,28 @@ void AProjectTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
+void AProjectTestCharacter::UpdateDebugAngleLine()
+{
+	if (!TargetActor) return;
 
+	FVector Start = GetActorLocation();
+	FVector End = TargetActor->GetActorLocation();
+
+	FVector ToTarget = (End - Start).GetSafeNormal();
+	FVector Forward = GetActorForwardVector();
+
+	// Lines
+	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 0.0f, 0, 2.0f);
+	DrawDebugLine(GetWorld(), Start, Start + Forward * 200.0f, FColor::Blue, false, 0.0f, 0, 2.0f);
+
+	// Angle
+	float Dot = FVector::DotProduct(Forward, ToTarget);
+	float Angle = FMath::RadiansToDegrees(FMath::Acos(Dot));
+
+	FString Text = FString::Printf(TEXT("Angle: %.2f"), Angle);
+
+	DrawDebugString(GetWorld(), Start + FVector(0, 0, 100), Text, nullptr, FColor::White, 0.0f, false);
+}
 void AProjectTestCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D

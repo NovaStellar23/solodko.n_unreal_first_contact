@@ -16,7 +16,3 @@ void UMyAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
         Health.SetCurrentValue(NewHealth);
     }
 }
-float UMyAttributeSet::GetHealth() const
-{
-    return Health.GetCurrentValue();
-}

@@ -21,14 +21,11 @@ class PROJECTTEST_API UMyAttributeSet : public UAttributeSet
 
 public:
     UMyAttributeSet();
-                        
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
     FGameplayAttributeData Health;
 
-    ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health);
-
-    UFUNCTION(BlueprintCallable)
-    float GetHealth() const;
+    ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health)
 
         virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-};                                  
+};

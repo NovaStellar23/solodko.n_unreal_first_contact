@@ -27,7 +27,7 @@ class AProjectTestCharacter : public ACharacter, public IAbilitySystemInterface
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
 	UAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY()
@@ -62,6 +62,23 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	// ===== TARGET ANALYSIS =====
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
+	AActor* TargetActor;
+
+	virtual void Tick(float DeltaTime) override;
+
+	void UpdateDebugAngleLine();
+
+	void AnalyzeTarget(
+		AActor* Target,
+		FVector& OutDirection,
+		float& OutAngle,
+		bool& bIsRightSide
+	);
+
+	void DrawDebugStuff(FVector Direction, float Angle, bool bIsRight);
 protected:
 
 	/** Called for movement input */
