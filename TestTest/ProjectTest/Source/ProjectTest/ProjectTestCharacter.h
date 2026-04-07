@@ -60,6 +60,9 @@ protected:
 public:
 	AProjectTestCharacter();
 	
+	void SwitchToConfig1();
+	void SwitchToConfig2();
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	// ===== TARGET ANALYSIS =====
